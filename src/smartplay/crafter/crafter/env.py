@@ -54,6 +54,8 @@ class Env(BaseClass):
     # Some libraries expect these attributes to be set.
     self.reward_range = None
     self.metadata = None
+    # MOD: Add count of meat collected
+    self._last_meat_collected = None
 
   @property
   def observation_space(self):
@@ -75,6 +77,8 @@ class Env(BaseClass):
     self._update_time()
     self._player = objects.Player(self._world, center)
     self._last_health = self._player.health
+    # MOD: Add count of meat collected
+    self._last_meat_collected = self._player._meat_collected
     self._world.add(self._player)
     self._unlocked = set()
     worldgen.generate_world(self._world, self._player)
@@ -101,7 +105,10 @@ class Env(BaseClass):
         if count > 0 and name not in self._unlocked}
     if unlocked:
       self._unlocked |= unlocked
-      reward += 1.0
+      # MOD: reward based on meat collected
+      # reward += 1.0
+    reward += self._player._meat_collected - self._last_meat_collected
+    self._last_meat_collected = self._player._meat_collected
     dead = self._player.health <= 0
     over = self._length and self._step >= self._length
     done = dead or over
@@ -141,20 +148,23 @@ class Env(BaseClass):
   def _update_time(self):
     # https://www.desmos.com/calculator/grfbc6rs3h
     progress = (self._step / 300) % 1 + 0.3
-    daylight = 1 - np.abs(np.cos(np.pi * progress)) ** 3
+    # daylight = 1 - np.abs(np.cos(np.pi * progress)) ** 3
+    # MOD: Set daylight to always be 1 (no nights
+    daylight = 1
     self._world.daylight = daylight
 
   def _balance_chunk(self, chunk, objs):
     light = self._world.daylight
-    self._balance_object(
-        chunk, objs, objects.Zombie, 'grass', 6, 0, 0.3, 0.4,
-        lambda pos: objects.Zombie(self._world, pos, self._player),
-        lambda num, space: (
-            0 if space < 50 else 3.5 - 3 * light, 3.5 - 3 * light))
-    self._balance_object(
-        chunk, objs, objects.Skeleton, 'path', 7, 7, 0.1, 0.1,
-        lambda pos: objects.Skeleton(self._world, pos, self._player),
-        lambda num, space: (0 if space < 6 else 1, 2))
+    # MOD: Remove zombie and skeleton balancing
+    # self._balance_object(
+    #     chunk, objs, objects.Zombie, 'grass', 6, 0, 0.3, 0.4,
+    #     lambda pos: objects.Zombie(self._world, pos, self._player),
+    #     lambda num, space: (
+    #         0 if space < 50 else 3.5 - 3 * light, 3.5 - 3 * light))
+    # self._balance_object(
+    #     chunk, objs, objects.Skeleton, 'path', 7, 7, 0.1, 0.1,
+    #     lambda pos: objects.Skeleton(self._world, pos, self._player),
+    #     lambda num, space: (0 if space < 6 else 1, 2))
     self._balance_object(
         chunk, objs, objects.Cow, 'grass', 5, 5, 0.01, 0.1,
         lambda pos: objects.Cow(self._world, pos),

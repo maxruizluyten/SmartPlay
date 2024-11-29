@@ -80,6 +80,7 @@ class Player(Object):
     self._thirst = 0
     self._fatigue = 0
     self._recover = 0
+    self._meat_collected = 0
 
   @property
   def texture(self):
@@ -207,6 +208,8 @@ class Player(Object):
       if obj.health <= 0:
         self.inventory['food'] += 6
         self.achievements['eat_cow'] += 1
+         # MOD: +1 meat_collected to increase env reward
+        self._meat_collected += 1
         # TODO: Keep track of previous inventory state to do this in a more
         # general way.
         self._hunger = 0
@@ -229,6 +232,24 @@ class Player(Object):
         self.achievements[f'collect_{name}'] += 1
 
   def _place(self, name, target, material):
+    	
+    # MOD: Check if facing a cow and spawn another cow next to it
+    if name == 'plant':
+      facing_pos = self.pos + self.facing
+      material, obj = self.world[facing_pos]
+      if isinstance(obj, Cow):
+        # Find an empty adjacent position to spawn the new cow
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+          new_pos = (target[0] + dx, target[1] + dy)
+          if self.world[new_pos][1] is None:
+            # Discard sapling from inventory
+            info = constants.place[name]
+            for item, amount in info['uses'].items():
+              self.inventory[item] -= amount
+            # Spawn a cow
+            self.world.add(Cow(self.world, new_pos))
+            print('Bred cow')
+            return
     if self.world[target][1]:
       return
     info = constants.place[name]
