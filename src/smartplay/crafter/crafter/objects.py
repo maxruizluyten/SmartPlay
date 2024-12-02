@@ -208,7 +208,7 @@ class Player(Object):
       if obj.health <= 0:
         self.inventory['food'] += 6
         self.achievements['eat_cow'] += 1
-         # MOD: +1 meat_collected to increase env reward
+        # MOD: +1 meat_collected to increase env reward
         self._meat_collected += 1
         # TODO: Keep track of previous inventory state to do this in a more
         # general way.
@@ -232,7 +232,6 @@ class Player(Object):
         self.achievements[f'collect_{name}'] += 1
 
   def _place(self, name, target, material):
-    	
     # MOD: Check if facing a cow and spawn another cow next to it
     if name == 'plant':
       facing_pos = self.pos + self.facing
@@ -286,7 +285,8 @@ class Cow(Object):
 
   def __init__(self, world, pos):
     super().__init__(world, pos)
-    self.health = 3
+    # MOD: drop health to 1
+    self.health = 1
 
   @property
   def texture(self):
