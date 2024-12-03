@@ -66,10 +66,10 @@ def describe_env(info):
     dist = np.absolute(center-loc).sum(axis=-1)
     obj_info_list = []
     
-    facing = info['player_facing']
-    target = (center[0] + facing[0], center[1] + facing[1])
-    target = id_to_item[semantic[target]]
-    obs = "You face {} at your front.".format(target, describe_loc(np.array([0,0]),facing))
+    # facing = info['player_facing']
+    # target = (center[0] + facing[0], center[1] + facing[1])
+    # target = id_to_item[semantic[target]]
+    # obs = "You face {} at your front.".format(target, describe_loc(np.array([0,0]),facing))
     
     for idx in np.unique(semantic):
         if idx==player_idx:
@@ -83,7 +83,7 @@ def describe_env(info):
     else:
         status_str = "You see nothing away from you."
     result += status_str + "\n\n"
-    result += obs.strip()
+    # result += obs.strip()
     
     return result.strip()
 
