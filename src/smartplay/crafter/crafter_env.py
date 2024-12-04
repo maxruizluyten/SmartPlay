@@ -21,14 +21,14 @@ directions = ['front', 'right', 'back', 'left']
 
 def describe_inventory(info):
     result = ""
-    
+
     status_str = "Your status:\n{}".format("\n".join(["- {}: {}/9".format(v, info['inventory'][v]) for v in vitals]))
     result += status_str + "\n\n"
-    
+
     inventory_str = "\n".join(["- {}: {}".format(i, num) for i,num in info['inventory'].items() if i not in vitals and num!=0])
     inventory_str = "Your inventory:\n{}".format(inventory_str) if inventory_str else "You have nothing in your inventory."
     result += inventory_str #+ "\n\n"
-    
+
     return result.strip()
 
 
@@ -56,7 +56,7 @@ def describe_loc(ref, P):
 
 def describe_env(info):
     assert(info['semantic'][info['player_pos'][0],info['player_pos'][1]] == player_idx)
-    semantic = info['semantic'][info['player_pos'][0]-info['view'][0]//2:info['player_pos'][0]+info['view'][0]//2+1, info['player_pos'][1]-info['view'][1]//2+1:info['player_pos'][1]+info['view'][1]//2]
+    semantic = info['semantic'][info['player_pos'][0]-info['view'][0]//2:info['player_pos'][0]+info['view'][0]//2+1, info['player_pos'][1]-info['view'][1]//2:info['player_pos'][1]+info['view'][1]//2+1]
     center = np.array([info['view'][0]//2,info['view'][1]//2-1])
     result = ""
     x = np.arange(semantic.shape[1])
@@ -65,12 +65,12 @@ def describe_env(info):
     loc = np.stack((y1, x1),axis=-1)
     dist = np.absolute(center-loc).sum(axis=-1)
     obj_info_list = []
-    
-    facing = info['player_facing']
-    target = (center[0] + facing[0], center[1] + facing[1])
-    target = id_to_item[semantic[target]]
-    obs = "You face {} at your front.".format(target, describe_loc(np.array([0,0]),facing))
-    
+
+    # facing = info['player_facing']
+    # target = (center[0] + facing[0], center[1] + facing[1])
+    # target = id_to_item[semantic[target]]
+    # obs = "You face {} at your front.".format(target, describe_loc(np.array([0,0]),facing))
+
     for idx in np.unique(semantic):
         if idx==player_idx:
             continue
@@ -83,23 +83,23 @@ def describe_env(info):
     else:
         status_str = "You see nothing away from you."
     result += status_str + "\n\n"
-    result += obs.strip()
-    
+    # result += obs.strip()
+
     return result.strip()
 
 
 def describe_act(info):
     result = ""
-    
+
     action_str = info['action'].replace('do_', 'interact_')
     action_str = action_str.replace('move_up', 'move_north')
     action_str = action_str.replace('move_down', 'move_south')
     action_str = action_str.replace('move_left', 'move_west')
     action_str = action_str.replace('move_right', 'move_east')
-    
-    act = "You took action {}.".format(action_str) 
+
+    act = "You took action {}.".format(action_str)
     result+= act
-    
+
     return result.strip()
 
 
@@ -111,11 +111,11 @@ def describe_status(info):
     else:
         return ""
 
-    
+
 def describe_frame(info, action):
     try:
         result = ""
-        
+
         if action is not None:
             result+=describe_act(info)
         result+=describe_status(info)
@@ -123,7 +123,7 @@ def describe_frame(info, action):
         result+=describe_env(info)
         result+="\n\n"
         result+=describe_inventory(info)
-        
+
         return result.strip()
     except:
         return "Error, you are out of the map."
@@ -167,7 +167,7 @@ class Crafter(Env):
                 })
         self.history.step(info)
         return obs, info
-    
+
     def step(self, action):
         obs, reward, done, info = super().step(action)
         self.score_tracker = self.score_tracker + sum([1. for k,v in info['achievements'].items() if v>0])
